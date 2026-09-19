@@ -2,7 +2,7 @@
 
 This project is an unofficial, community-maintained branch of the amazing [LocalSend](https://github.com/localsend/localsend) application, originally based on version 1.10.0.
 
-All credit for creating the original application goes to its authors. This project is distributed under the original **Apache License 2.0**, fully preserving the creators' copyrights.
+All credit for creating the original application goes to its authors. The original codebase (v1.10.0) is licensed under the **MIT License**. All subsequent modifications and backported features are distributed under the **Apache License 2.0**, fully preserving the creators' copyrights.
 
 ### Why does this fork exist?
 In newer versions, the Flutter engine completely transitioned to rendering via the Metal graphics API, dropping support for OpenGL. As a result, on older Intel Macs (especially those running modern macOS via OpenCore Legacy Patcher — OCLP), the UI of modern LocalSend releases fails to render, displaying a blank screen.
