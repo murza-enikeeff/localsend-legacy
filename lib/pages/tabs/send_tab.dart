@@ -10,6 +10,7 @@ import 'package:localsend_app/pages/selected_files_page.dart';
 import 'package:localsend_app/pages/send_page.dart';
 import 'package:localsend_app/pages/troubleshoot_page.dart';
 import 'package:localsend_app/pages/web_send_page.dart';
+import 'package:localsend_app/provider/animation_provider.dart';
 import 'package:localsend_app/provider/network/nearby_devices_provider.dart';
 import 'package:localsend_app/provider/network/scan_provider.dart';
 import 'package:localsend_app/provider/network/send_provider.dart';
@@ -284,13 +285,19 @@ class _SendTabState extends ConsumerState<SendTab> {
         const SizedBox(height: 20),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: _horizontalPadding),
-          child: OpacitySlideshow(
-            durationMillis: 6000,
-            children: [
-              Text(t.sendTab.help, style: const TextStyle(color: Colors.grey), textAlign: TextAlign.center),
-              if (checkPlatformCanReceiveShareIntent())
-                Text(t.sendTab.shareIntentInfo, style: const TextStyle(color: Colors.grey), textAlign: TextAlign.center),
-            ],
+          child: Consumer(
+            builder: (context, ref, child) {
+              final animations = ref.watch(animationProvider).enabled;
+              return OpacitySlideshow(
+                durationMillis: 6000,
+                running: animations,
+                children: [
+                  Text(t.sendTab.help, style: const TextStyle(color: Colors.grey), textAlign: TextAlign.center),
+                  if (checkPlatformCanReceiveShareIntent())
+                    Text(t.sendTab.shareIntentInfo, style: const TextStyle(color: Colors.grey), textAlign: TextAlign.center),
+                ],
+              );
+            }
           ),
         ),
         const SizedBox(height: 50),
