@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:localsend_app/constants.dart';
 import 'package:localsend_app/gen/strings.g.dart';
 import 'package:localsend_app/pages/home_page.dart';
+import 'package:localsend_app/provider/animation_provider.dart';
 import 'package:localsend_app/provider/dio_provider.dart';
 import 'package:localsend_app/provider/network/nearby_devices_provider.dart';
 import 'package:localsend_app/provider/network/server/server_provider.dart';
@@ -24,8 +25,14 @@ import 'package:window_manager/window_manager.dart';
 
 const launchAtStartupArg = 'autostart';
 
+class PreInitResult {
+  final PersistenceService service;
+  final bool startHidden;
+  PreInitResult(this.service, this.startHidden);
+}
+
 /// Will be called before the MaterialApp started
-Future<PersistenceService> preInit(List<String> args) async {
+Future<PreInitResult> preInit(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
 
   final persistenceService = await PersistenceService.initialize();
@@ -53,6 +60,7 @@ Future<PersistenceService> preInit(List<String> args) async {
     );
   }
 
+  bool startHidden = false;
   if (checkPlatformIsDesktop()) {
     // Check if this app is already open and let it "show up".
     // If this is the case, then exit the current instance.
@@ -91,10 +99,14 @@ Future<PersistenceService> preInit(List<String> args) async {
       // We show this app, when (1) app started manually, (2) app should not start minimized
       // In other words: only start minimized when launched on startup and "launchMinimized" is configured
       await WindowManager.instance.show();
+    } else {
+      // keep this app hidden
+      startHidden = true;
     }
   }
 
-  return persistenceService;
+  setDefaultRouteTransition();
+  return PreInitResult(persistenceService, startHidden);
 }
 
 StreamSubscription? _sharedMediaSubscription;

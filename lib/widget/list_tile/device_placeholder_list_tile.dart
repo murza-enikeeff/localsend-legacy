@@ -11,7 +11,7 @@ class DevicePlaceholderListTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final animations = ref.watch(animationProvider).enabled;
+    final animations = ref.watch(animationProvider);
     return CustomListTile(
       icon: OpacitySlideshow(
         durationMillis: 3000,

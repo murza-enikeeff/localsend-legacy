@@ -54,6 +54,7 @@ const _minimizeToTray = 'ls_minimize_to_tray';
 const _autoStartLaunchMinimized = 'ls_auto_start_launch_minimized';
 const _https = 'ls_https';
 const _sendMode = 'ls_send_mode';
+const _enableAnimations = 'ls_enable_animations';
 
 /// This service abstracts the persistence layer.
 class PersistenceService {
@@ -292,5 +293,13 @@ class PersistenceService {
 
   bool getSaveWindowPlacement() {
     return _prefs.getBool(_saveWindowPlacement) ?? true;
+  }
+
+  Future<void> setEnableAnimations(bool enableAnimations) async {
+    await _prefs.setBool(_enableAnimations, enableAnimations);
+  }
+
+  bool getEnableAnimations() {
+    return _prefs.getBool(_enableAnimations) ?? true;
   }
 }

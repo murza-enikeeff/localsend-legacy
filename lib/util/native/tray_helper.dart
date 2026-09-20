@@ -85,7 +85,7 @@ Future<void> hideToTray() async {
     await windowManager.setSkipTaskbar(true);
 
     // Disable animations
-    globalAnimationState.setEnabled(false);
+    globalSleepState.setSleep(true);
   }
 }
 
@@ -98,6 +98,6 @@ Future<void> showFromTray() async {
     await windowManager.setSkipTaskbar(false);
 
     // Enable animations
-    globalAnimationState.setEnabled(true);
+    globalSleepState.setSleep(false);
   }
 }

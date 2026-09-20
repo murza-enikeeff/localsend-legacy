@@ -241,7 +241,7 @@ class _WebSendPageState extends ConsumerState<WebSendPage> {
                     ),
                   );
                 }),
-                Text(t.webSharePage.hint, textAlign: TextAlign.center, style: const TextStyle(color: Colors.grey)),
+                //Text(t.webSharePage.hint, textAlign: TextAlign.center, style: const TextStyle(color: Colors.grey)),
               ],
             );
           },

@@ -287,7 +287,7 @@ class _SendTabState extends ConsumerState<SendTab> {
           padding: const EdgeInsets.symmetric(horizontal: _horizontalPadding),
           child: Consumer(
             builder: (context, ref, child) {
-              final animations = ref.watch(animationProvider).enabled;
+              final animations = ref.watch(animationProvider);
               return OpacitySlideshow(
                 durationMillis: 6000,
                 running: animations,
@@ -412,6 +412,7 @@ class _RotatingSyncIcon extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final scanningIps = ref.watch(nearbyDevicesProvider.select((s) => s.runningIps));
+    final animations = ref.watch(animationProvider);
     return RotatingWidget(
       duration: const Duration(seconds: 2),
       spinning: scanningIps.contains(ip),

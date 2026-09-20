@@ -19,6 +19,7 @@ import 'package:localsend_app/widget/custom_dropdown_button.dart';
 import 'package:localsend_app/widget/dialogs/encryption_disabled_notice.dart';
 import 'package:localsend_app/widget/dialogs/quick_save_notice.dart';
 import 'package:localsend_app/widget/dialogs/text_field_tv.dart';
+import 'package:localsend_app/widget/labeled_checkbox.dart';
 import 'package:localsend_app/widget/local_send_logo.dart';
 import 'package:localsend_app/widget/responsive_list_view.dart';
 import 'package:routerino/routerino.dart';
@@ -34,6 +35,7 @@ class _SettingsTabState extends ConsumerState<SettingsTab> {
   final _aliasController = TextEditingController();
   final _portController = TextEditingController();
   final _multicastController = TextEditingController();
+  bool _advanced = false;
 
   @override
   void initState() {
@@ -162,6 +164,13 @@ class _SettingsTabState extends ConsumerState<SettingsTab> {
                 ),
               ],
             ],
+            _BooleanEntry(
+              label: t.settingsTab.general.animations,
+              value: settings.enableAnimations,
+              onChanged: (b) async {
+                await ref.read(settingsProvider.notifier).setEnableAnimations(b);
+              },
+            ),
           ],
         ),
         _SettingsSection(
@@ -308,40 +317,43 @@ class _SettingsTabState extends ConsumerState<SettingsTab> {
                 },
               ),
             ),
-            _SettingsEntry(
-              label: t.settingsTab.network.port,
-              child: TextFieldTv(
-                name: t.settingsTab.network.port,
-                controller: _portController,
-                onChanged: (s) async {
-                  final port = int.tryParse(s);
-                  if (port != null) {
-                    await ref.read(settingsProvider.notifier).setPort(port);
+            if (_advanced)
+              _SettingsEntry(
+                label: t.settingsTab.network.port,
+                child: TextFieldTv(
+                  name: t.settingsTab.network.port,
+                  controller: _portController,
+                  onChanged: (s) async {
+                    final port = int.tryParse(s);
+                    if (port != null) {
+                      await ref.read(settingsProvider.notifier).setPort(port);
+                    }
+                  },
+                ),
+              ),
+            if (_advanced)
+              _BooleanEntry(
+                label: t.settingsTab.network.encryption,
+                value: settings.https,
+                onChanged: (b) async {
+                  final old = settings.https;
+                  await ref.read(settingsProvider.notifier).setHttps(b);
+                  if (old && !b && mounted) {
+                    await EncryptionDisabledNotice.open(context);
                   }
                 },
               ),
-            ),
-            _BooleanEntry(
-              label: t.settingsTab.network.encryption,
-              value: settings.https,
-              onChanged: (b) async {
-                final old = settings.https;
-                await ref.read(settingsProvider.notifier).setHttps(b);
-                if (old && !b && mounted) {
-                  await EncryptionDisabledNotice.open(context);
-                }
-              },
-            ),
-            _SettingsEntry(
-              label: t.settingsTab.network.multicastGroup,
-              child: TextFieldTv(
-                name: t.settingsTab.network.multicastGroup,
-                controller: _multicastController,
-                onChanged: (s) async {
-                  await ref.read(settingsProvider.notifier).setMulticastGroup(s);
-                },
+            if (_advanced)
+              _SettingsEntry(
+                label: t.settingsTab.network.multicastGroup,
+                child: TextFieldTv(
+                  name: t.settingsTab.network.multicastGroup,
+                  controller: _multicastController,
+                  onChanged: (s) async {
+                    await ref.read(settingsProvider.notifier).setMulticastGroup(s);
+                  },
+                ),
               ),
-            ),
             AnimatedCrossFade(
               crossFadeState: settings.port != defaultPort ? CrossFadeState.showSecond : CrossFadeState.showFirst,
               duration: const Duration(milliseconds: 200),
@@ -370,6 +382,21 @@ class _SettingsTabState extends ConsumerState<SettingsTab> {
             ),
           ],
         ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            LabeledCheckbox(
+              label: t.settingsTab.advancedSettings,
+              value: _advanced,
+              labelFirst: true,
+              onChanged: (b) {
+                setState(() => _advanced = b == true);
+              },
+            ),
+            const SizedBox(width: 10),
+          ],
+        ),
+        const SizedBox(height: 20),
         Theme(
           data: Theme.of(context).copyWith(
             textButtonTheme: TextButtonThemeData(
