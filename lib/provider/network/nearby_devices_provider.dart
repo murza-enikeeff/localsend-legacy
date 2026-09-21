@@ -94,6 +94,10 @@ class NearbyDevicesNotifier extends Notifier<NearbyDevicesState> {
     );
   }
 
+  void clearFoundDevices() {
+    state = state.copyWith(devices: {});
+  }
+
   Future<Device?> _doRequest(String currentIp, int port, bool https, String fingerprint) async {
     print('Requesting $currentIp');
     // We use the legacy route to make it less breaking for older versions

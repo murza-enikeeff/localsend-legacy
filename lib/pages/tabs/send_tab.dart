@@ -363,7 +363,10 @@ class _ScanButton extends ConsumerWidget {
         spinning: scanningIps.isNotEmpty,
         reverse: true,
         child: CustomIconButton(
-          onPressed: () async => ref.read(scanProvider).startSmartScan(forceLegacy: true),
+          onPressed: () async {
+            ref.read(nearbyDevicesProvider.notifier).clearFoundDevices();
+            await ref.read(scanProvider).startSmartScan(forceLegacy: true);
+          },
           child: const Icon(Icons.sync),
         ),
       );
@@ -371,7 +374,10 @@ class _ScanButton extends ConsumerWidget {
 
     return _CircularPopupButton(
       tooltip: t.sendTab.scan,
-      onSelected: (ip) async => ref.read(scanProvider).startLegacySubnetScan([ip]),
+      onSelected: (ip) async {
+        ref.read(nearbyDevicesProvider.notifier).clearFoundDevices();
+        await ref.read(scanProvider).startLegacySubnetScan([ip]);
+      },
       itemBuilder: (_) {
         return [
           ...ips.map(

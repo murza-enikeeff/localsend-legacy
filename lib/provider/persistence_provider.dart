@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:localsend_app/constants.dart';
 import 'package:localsend_app/gen/strings.g.dart';
+import 'package:localsend_app/model/device.dart';
 import 'package:localsend_app/model/persistence/color_mode.dart';
 import 'package:localsend_app/model/persistence/stored_security_context.dart';
 import 'package:localsend_app/model/receive_history_entry.dart';
@@ -49,12 +50,15 @@ const _portKey = 'ls_port';
 const _multicastGroupKey = 'ls_multicast_group';
 const _destinationKey = 'ls_destination';
 const _saveToGallery = 'ls_save_to_gallery';
+const _saveToHistory = 'ls_save_to_history';
 const _quickSave = 'ls_quick_save';
 const _minimizeToTray = 'ls_minimize_to_tray';
 const _autoStartLaunchMinimized = 'ls_auto_start_launch_minimized';
 const _https = 'ls_https';
 const _sendMode = 'ls_send_mode';
 const _enableAnimations = 'ls_enable_animations';
+const _deviceType = 'ls_device_type';
+const _deviceModel = 'ls_device_model';
 
 /// This service abstracts the persistence layer.
 class PersistenceService {
@@ -217,6 +221,14 @@ class PersistenceService {
     await _prefs.setBool(_saveToGallery, saveToGallery);
   }
 
+  Future<void> setSaveToHistory(bool saveToHistory) async {
+    await _prefs.setBool(_saveToHistory, saveToHistory);
+  }
+
+  bool isSaveToHistory() {
+    return _prefs.getBool(_saveToHistory) ?? true;
+  }
+
   bool isQuickSave() {
     return _prefs.getBool(_quickSave) ?? false;
   }
@@ -301,5 +313,21 @@ class PersistenceService {
 
   bool getEnableAnimations() {
     return _prefs.getBool(_enableAnimations) ?? true;
+  }
+
+  DeviceType? getDeviceType() {
+    return DeviceType.values.firstWhereOrNull((m) => m.name == _prefs.getString(_deviceType));
+  }
+
+  Future<void> setDeviceType(DeviceType deviceType) async {
+    await _prefs.setString(_deviceType, deviceType.name);
+  }
+
+  String? getDeviceModel() {
+    return _prefs.getString(_deviceModel);
+  }
+
+  Future<void> setDeviceModel(String deviceModel) async {
+    await _prefs.setString(_deviceModel, deviceModel);
   }
 }

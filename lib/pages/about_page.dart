@@ -56,13 +56,13 @@ class AboutPage extends StatelessWidget {
                 onPressed: () async {
                   await launchUrl(Uri.parse('https://localsend.org'));
                 },
-                child: const Text('Homepage'),
+                child: const Text('Homepage (original)'),
               ),
               TextButton(
                 onPressed: () async {
-                  await launchUrl(Uri.parse('https://github.com/localsend/localsend'), mode: LaunchMode.externalApplication);
+                  await launchUrl(Uri.parse('https://github.com/murza-enikeeff/localsend'), mode: LaunchMode.externalApplication);
                 },
-                child: const Text('Source Code (Github)'),
+                child: const Text('Fork Source Code (Github)'),
               ),
               TextButton(
                 onPressed: () async {

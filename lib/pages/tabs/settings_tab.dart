@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:localsend_app/constants.dart';
 import 'package:localsend_app/gen/strings.g.dart';
+import 'package:localsend_app/model/device.dart';
 import 'package:localsend_app/model/persistence/color_mode.dart';
 import 'package:localsend_app/pages/about_page.dart';
 import 'package:localsend_app/pages/changelog_page.dart';
 import 'package:localsend_app/pages/language_page.dart';
+import 'package:localsend_app/provider/device_info_provider.dart';
 import 'package:localsend_app/provider/network/server/server_provider.dart';
 import 'package:localsend_app/provider/settings_provider.dart';
 import 'package:localsend_app/provider/version_provider.dart';
@@ -33,6 +35,7 @@ class SettingsTab extends ConsumerStatefulWidget {
 
 class _SettingsTabState extends ConsumerState<SettingsTab> {
   final _aliasController = TextEditingController();
+  final _deviceModelController = TextEditingController();
   final _portController = TextEditingController();
   final _multicastController = TextEditingController();
   bool _advanced = false;
@@ -42,14 +45,25 @@ class _SettingsTabState extends ConsumerState<SettingsTab> {
     super.initState();
     final settings = ref.read(settingsProvider);
     _aliasController.text = settings.alias;
+    _deviceModelController.text = ref.read(deviceInfoProvider).deviceModel ?? '';
     _portController.text = settings.port.toString();
     _multicastController.text = settings.multicastGroup;
+  }
+
+  @override
+  void dispose() {
+    _aliasController.dispose();
+    _deviceModelController.dispose();
+    _portController.dispose();
+    _multicastController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final settings = ref.watch(settingsProvider);
     final serverState = ref.watch(serverProvider);
+    final deviceInfo = ref.watch(deviceInfoProvider);
     return ResponsiveListView(
       padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 40),
       children: [
@@ -221,6 +235,13 @@ class _SettingsTabState extends ConsumerState<SettingsTab> {
                   await ref.read(settingsProvider.notifier).setSaveToGallery(b);
                 },
               ),
+            _BooleanEntry(
+              label: t.settingsTab.receive.saveToHistory,
+              value: settings.saveToHistory,
+              onChanged: (b) async {
+                await ref.read(settingsProvider.notifier).setSaveToHistory(b);
+              },
+            ),
           ],
         ),
         _SettingsSection(
@@ -317,6 +338,36 @@ class _SettingsTabState extends ConsumerState<SettingsTab> {
                 },
               ),
             ),
+            if (_advanced)
+              _SettingsEntry(
+                label: t.settingsTab.network.deviceType,
+                child: CustomDropdownButton<DeviceType>(
+                  value: ref.watch(deviceInfoProvider).deviceType, // Используем новый провайдер
+                  items: DeviceType.values.map((type) {
+                    return DropdownMenuItem(
+                      value: type,
+                      alignment: Alignment.center,
+                      child: Icon(type.icon),
+                    );
+                  }).toList(),
+                  onChanged: (type) async {
+                    if (type != null) {
+                      await ref.read(settingsProvider.notifier).setDeviceType(type);
+                    }
+                  },
+                ),
+              ),
+            if (_advanced)
+              _SettingsEntry(
+                label: t.settingsTab.network.deviceModel,
+                child: TextFieldTv(
+                  name: t.settingsTab.network.deviceModel,
+                  controller: _deviceModelController,
+                  onChanged: (s) async {
+                    await ref.read(settingsProvider.notifier).setDeviceModel(s);
+                  },
+                ),
+              ),
             if (_advanced)
               _SettingsEntry(
                 label: t.settingsTab.network.port,
@@ -487,20 +538,20 @@ class _BooleanEntry extends StatelessWidget {
   Widget build(BuildContext context) {
     return _SettingsEntry(
       label: label,
-      child: CustomDropdownButton<bool>(
-        value: value,
-        items: [false, true].map((b) {
-          return DropdownMenuItem(
-            value: b,
-            alignment: Alignment.center,
-            child: Text(b ? t.general.on : t.general.off),
-          );
-        }).toList(),
-        onChanged: (b) {
-          if (b != null) {
-            onChanged(b);
-          }
-        },
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          Text(
+            value ? t.general.on : t.general.off,
+            style: const TextStyle(fontSize: 16),
+          ),
+          const SizedBox(width: 10),
+          Switch(
+            value: value,
+            onChanged: onChanged,
+            activeColor: Theme.of(context).colorScheme.primary,
+          ),
+        ],
       ),
     );
   }

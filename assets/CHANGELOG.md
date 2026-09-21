@@ -1,3 +1,20 @@
+## 1.11.0-legacy (2026-09-21)
+
+- backports (features and fixes) by: @murza-enikeeff
+- feat: optionally enable HTTPS (encryption) when share via link (@Tienisto)
+- feat: use switches instead of dropdowns for settings (@forecaster-cyber)
+- feat: tapping on scan button clears found devices (@Tienisto)
+- feat: text message dialog is multiline only (@Tienisto)
+- feat: add option to disable animations (@Tienisto)
+- feat: add option to not save to history (@Tienisto)
+- feat: add option to customize device model (@Tienisto)
+- feat(desktop): bind "ESC" key to go to the previous page (@RiverTwilight, @Tienisto)
+- fix(desktop): GPU usage when hidden to tray (@Tienisto)
+
+## 1.10.0-legacy (2026-09-19)
+
+- feat: forked the project to maintain compatibility with Flutter 3.3.10 and Dart 2.18. Preserved legacy OpenGL rendering support specifically for older macOS (Intel) devices running via OpenCore Legacy Patcher (OCLP) (@murza-enikeeff)
+
 ## 1.10.0 (2023-06-02)
 
 - feat: dynamic colors (Material You) (@Tienisto)

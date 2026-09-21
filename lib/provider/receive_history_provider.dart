@@ -28,6 +28,9 @@ class ReceiveHistoryNotifier extends Notifier<List<ReceiveHistoryEntry>> {
     required String senderAlias,
     required DateTime timestamp,
   }) async {
+    if (!_service.isSaveToHistory()) {
+      return;
+    }
     final updated = [
       ReceiveHistoryEntry(
         id: id,
