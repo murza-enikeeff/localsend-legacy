@@ -26,24 +26,31 @@ class WebSendPage extends ConsumerStatefulWidget {
 
 class _WebSendPageState extends ConsumerState<WebSendPage> {
   _ServerState _stateEnum = _ServerState.initializing;
+  bool _encrypted = false;
   String? _initializedError;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _init();
+      _init(encrypted: false);
     });
   }
 
-  void _init() async {
+  void _init({required bool encrypted}) async {
     await sleepAsync(500);
     final settings = ref.read(settingsProvider);
     try {
+      setState(() {
+        _stateEnum = _ServerState.initializing;
+        _encrypted = encrypted;
+        _initializedError = null;
+      });
+
       await ref.read(serverProvider.notifier).restartServer(
             alias: settings.alias,
             port: settings.port,
-            https: false, // always start unencrypted
+            https: _encrypted, // always start unencrypted
           );
       await ref.read(serverProvider.notifier).initializeWebSend(widget.files);
       setState(() {
@@ -129,7 +136,7 @@ class _WebSendPageState extends ConsumerState<WebSendPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         ...networkState.localIps.map((ip) {
-                          final url = 'http://$ip:${serverState.port}';
+                          final url = '${_encrypted ? 'https' : 'http'}://$ip:${serverState.port}';
                           return Padding(
                             padding: const EdgeInsets.all(5),
                             child: Row(
@@ -174,6 +181,27 @@ class _WebSendPageState extends ConsumerState<WebSendPage> {
                     ),
                   ),
                 ),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2),
+                      child: Text(t.webSharePage.encryption, style: Theme.of(context).textTheme.titleMedium),
+                    ),
+                    const SizedBox(width: 10),
+                    Checkbox(
+                      value: _encrypted,
+                      onChanged: (value) {
+                        _init(encrypted: value == true);
+                      },
+                    ),
+                  ],
+                ),
+                if (_encrypted)
+                  Text(
+                    t.webSharePage.encryptionHint,
+                    style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: Theme.of(context).colorScheme.warning),
+                  ),
                 const SizedBox(height: 20),
                 Text(t.webSharePage.requests, style: Theme.of(context).textTheme.titleMedium),
                 const SizedBox(height: 10),
@@ -241,7 +269,6 @@ class _WebSendPageState extends ConsumerState<WebSendPage> {
                     ),
                   );
                 }),
-                Text(t.webSharePage.hint, textAlign: TextAlign.center, style: const TextStyle(color: Colors.grey)),
               ],
             );
           },

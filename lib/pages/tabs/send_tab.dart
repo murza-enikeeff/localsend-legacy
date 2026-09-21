@@ -10,6 +10,7 @@ import 'package:localsend_app/pages/selected_files_page.dart';
 import 'package:localsend_app/pages/send_page.dart';
 import 'package:localsend_app/pages/troubleshoot_page.dart';
 import 'package:localsend_app/pages/web_send_page.dart';
+import 'package:localsend_app/provider/animation_provider.dart';
 import 'package:localsend_app/provider/network/nearby_devices_provider.dart';
 import 'package:localsend_app/provider/network/scan_provider.dart';
 import 'package:localsend_app/provider/network/send_provider.dart';
@@ -284,13 +285,19 @@ class _SendTabState extends ConsumerState<SendTab> {
         const SizedBox(height: 20),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: _horizontalPadding),
-          child: OpacitySlideshow(
-            durationMillis: 6000,
-            children: [
-              Text(t.sendTab.help, style: const TextStyle(color: Colors.grey), textAlign: TextAlign.center),
-              if (checkPlatformCanReceiveShareIntent())
-                Text(t.sendTab.shareIntentInfo, style: const TextStyle(color: Colors.grey), textAlign: TextAlign.center),
-            ],
+          child: Consumer(
+            builder: (context, ref, child) {
+              final animations = ref.watch(animationProvider);
+              return OpacitySlideshow(
+                durationMillis: 6000,
+                running: animations,
+                children: [
+                  Text(t.sendTab.help, style: const TextStyle(color: Colors.grey), textAlign: TextAlign.center),
+                  if (checkPlatformCanReceiveShareIntent())
+                    Text(t.sendTab.shareIntentInfo, style: const TextStyle(color: Colors.grey), textAlign: TextAlign.center),
+                ],
+              );
+            }
           ),
         ),
         const SizedBox(height: 50),
@@ -356,7 +363,10 @@ class _ScanButton extends ConsumerWidget {
         spinning: scanningIps.isNotEmpty,
         reverse: true,
         child: CustomIconButton(
-          onPressed: () async => ref.read(scanProvider).startSmartScan(forceLegacy: true),
+          onPressed: () async {
+            ref.read(nearbyDevicesProvider.notifier).clearFoundDevices();
+            await ref.read(scanProvider).startSmartScan(forceLegacy: true);
+          },
           child: const Icon(Icons.sync),
         ),
       );
@@ -364,7 +374,10 @@ class _ScanButton extends ConsumerWidget {
 
     return _CircularPopupButton(
       tooltip: t.sendTab.scan,
-      onSelected: (ip) async => ref.read(scanProvider).startLegacySubnetScan([ip]),
+      onSelected: (ip) async {
+        ref.read(nearbyDevicesProvider.notifier).clearFoundDevices();
+        await ref.read(scanProvider).startLegacySubnetScan([ip]);
+      },
       itemBuilder: (_) {
         return [
           ...ips.map(
@@ -405,6 +418,7 @@ class _RotatingSyncIcon extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final scanningIps = ref.watch(nearbyDevicesProvider.select((s) => s.runningIps));
+    final animations = ref.watch(animationProvider);
     return RotatingWidget(
       duration: const Duration(seconds: 2),
       spinning: scanningIps.contains(ip),

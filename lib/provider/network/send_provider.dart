@@ -97,7 +97,7 @@ class SendNotifier extends Notifier<Map<String, SendSessionState>> {
       errorMessage: null,
     );
 
-    final originDevice = ref.read(deviceInfoProvider);
+    final originDevice = ref.read(deviceFullInfoProvider);
     final requestDto = PrepareUploadRequestDto(
       info: InfoRegisterDto(
         alias: originDevice.alias,

@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:localsend_app/constants.dart';
 import 'package:localsend_app/gen/strings.g.dart';
+import 'package:localsend_app/model/device.dart';
 import 'package:localsend_app/model/persistence/color_mode.dart';
 import 'package:localsend_app/pages/about_page.dart';
 import 'package:localsend_app/pages/changelog_page.dart';
 import 'package:localsend_app/pages/language_page.dart';
+import 'package:localsend_app/provider/device_info_provider.dart';
 import 'package:localsend_app/provider/network/server/server_provider.dart';
 import 'package:localsend_app/provider/settings_provider.dart';
 import 'package:localsend_app/provider/version_provider.dart';
@@ -19,6 +21,7 @@ import 'package:localsend_app/widget/custom_dropdown_button.dart';
 import 'package:localsend_app/widget/dialogs/encryption_disabled_notice.dart';
 import 'package:localsend_app/widget/dialogs/quick_save_notice.dart';
 import 'package:localsend_app/widget/dialogs/text_field_tv.dart';
+import 'package:localsend_app/widget/labeled_checkbox.dart';
 import 'package:localsend_app/widget/local_send_logo.dart';
 import 'package:localsend_app/widget/responsive_list_view.dart';
 import 'package:routerino/routerino.dart';
@@ -32,22 +35,35 @@ class SettingsTab extends ConsumerStatefulWidget {
 
 class _SettingsTabState extends ConsumerState<SettingsTab> {
   final _aliasController = TextEditingController();
+  final _deviceModelController = TextEditingController();
   final _portController = TextEditingController();
   final _multicastController = TextEditingController();
+  bool _advanced = false;
 
   @override
   void initState() {
     super.initState();
     final settings = ref.read(settingsProvider);
     _aliasController.text = settings.alias;
+    _deviceModelController.text = ref.read(deviceInfoProvider).deviceModel ?? '';
     _portController.text = settings.port.toString();
     _multicastController.text = settings.multicastGroup;
+  }
+
+  @override
+  void dispose() {
+    _aliasController.dispose();
+    _deviceModelController.dispose();
+    _portController.dispose();
+    _multicastController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final settings = ref.watch(settingsProvider);
     final serverState = ref.watch(serverProvider);
+    final deviceInfo = ref.watch(deviceInfoProvider);
     return ResponsiveListView(
       padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 40),
       children: [
@@ -162,6 +178,13 @@ class _SettingsTabState extends ConsumerState<SettingsTab> {
                 ),
               ],
             ],
+            _BooleanEntry(
+              label: t.settingsTab.general.animations,
+              value: settings.enableAnimations,
+              onChanged: (b) async {
+                await ref.read(settingsProvider.notifier).setEnableAnimations(b);
+              },
+            ),
           ],
         ),
         _SettingsSection(
@@ -212,6 +235,13 @@ class _SettingsTabState extends ConsumerState<SettingsTab> {
                   await ref.read(settingsProvider.notifier).setSaveToGallery(b);
                 },
               ),
+            _BooleanEntry(
+              label: t.settingsTab.receive.saveToHistory,
+              value: settings.saveToHistory,
+              onChanged: (b) async {
+                await ref.read(settingsProvider.notifier).setSaveToHistory(b);
+              },
+            ),
           ],
         ),
         _SettingsSection(
@@ -308,40 +338,73 @@ class _SettingsTabState extends ConsumerState<SettingsTab> {
                 },
               ),
             ),
-            _SettingsEntry(
-              label: t.settingsTab.network.port,
-              child: TextFieldTv(
-                name: t.settingsTab.network.port,
-                controller: _portController,
-                onChanged: (s) async {
-                  final port = int.tryParse(s);
-                  if (port != null) {
-                    await ref.read(settingsProvider.notifier).setPort(port);
+            if (_advanced)
+              _SettingsEntry(
+                label: t.settingsTab.network.deviceType,
+                child: CustomDropdownButton<DeviceType>(
+                  value: ref.watch(deviceInfoProvider).deviceType, // Используем новый провайдер
+                  items: DeviceType.values.map((type) {
+                    return DropdownMenuItem(
+                      value: type,
+                      alignment: Alignment.center,
+                      child: Icon(type.icon),
+                    );
+                  }).toList(),
+                  onChanged: (type) async {
+                    if (type != null) {
+                      await ref.read(settingsProvider.notifier).setDeviceType(type);
+                    }
+                  },
+                ),
+              ),
+            if (_advanced)
+              _SettingsEntry(
+                label: t.settingsTab.network.deviceModel,
+                child: TextFieldTv(
+                  name: t.settingsTab.network.deviceModel,
+                  controller: _deviceModelController,
+                  onChanged: (s) async {
+                    await ref.read(settingsProvider.notifier).setDeviceModel(s);
+                  },
+                ),
+              ),
+            if (_advanced)
+              _SettingsEntry(
+                label: t.settingsTab.network.port,
+                child: TextFieldTv(
+                  name: t.settingsTab.network.port,
+                  controller: _portController,
+                  onChanged: (s) async {
+                    final port = int.tryParse(s);
+                    if (port != null) {
+                      await ref.read(settingsProvider.notifier).setPort(port);
+                    }
+                  },
+                ),
+              ),
+            if (_advanced)
+              _BooleanEntry(
+                label: t.settingsTab.network.encryption,
+                value: settings.https,
+                onChanged: (b) async {
+                  final old = settings.https;
+                  await ref.read(settingsProvider.notifier).setHttps(b);
+                  if (old && !b && mounted) {
+                    await EncryptionDisabledNotice.open(context);
                   }
                 },
               ),
-            ),
-            _BooleanEntry(
-              label: t.settingsTab.network.encryption,
-              value: settings.https,
-              onChanged: (b) async {
-                final old = settings.https;
-                await ref.read(settingsProvider.notifier).setHttps(b);
-                if (old && !b && mounted) {
-                  await EncryptionDisabledNotice.open(context);
-                }
-              },
-            ),
-            _SettingsEntry(
-              label: t.settingsTab.network.multicastGroup,
-              child: TextFieldTv(
-                name: t.settingsTab.network.multicastGroup,
-                controller: _multicastController,
-                onChanged: (s) async {
-                  await ref.read(settingsProvider.notifier).setMulticastGroup(s);
-                },
+            if (_advanced)
+              _SettingsEntry(
+                label: t.settingsTab.network.multicastGroup,
+                child: TextFieldTv(
+                  name: t.settingsTab.network.multicastGroup,
+                  controller: _multicastController,
+                  onChanged: (s) async {
+                    await ref.read(settingsProvider.notifier).setMulticastGroup(s);
+                  },
+                ),
               ),
-            ),
             AnimatedCrossFade(
               crossFadeState: settings.port != defaultPort ? CrossFadeState.showSecond : CrossFadeState.showFirst,
               duration: const Duration(milliseconds: 200),
@@ -370,6 +433,21 @@ class _SettingsTabState extends ConsumerState<SettingsTab> {
             ),
           ],
         ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            LabeledCheckbox(
+              label: t.settingsTab.advancedSettings,
+              value: _advanced,
+              labelFirst: true,
+              onChanged: (b) {
+                setState(() => _advanced = b == true);
+              },
+            ),
+            const SizedBox(width: 10),
+          ],
+        ),
+        const SizedBox(height: 20),
         Theme(
           data: Theme.of(context).copyWith(
             textButtonTheme: TextButtonThemeData(
@@ -460,20 +538,20 @@ class _BooleanEntry extends StatelessWidget {
   Widget build(BuildContext context) {
     return _SettingsEntry(
       label: label,
-      child: CustomDropdownButton<bool>(
-        value: value,
-        items: [false, true].map((b) {
-          return DropdownMenuItem(
-            value: b,
-            alignment: Alignment.center,
-            child: Text(b ? t.general.on : t.general.off),
-          );
-        }).toList(),
-        onChanged: (b) {
-          if (b != null) {
-            onChanged(b);
-          }
-        },
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          Text(
+            value ? t.general.on : t.general.off,
+            style: const TextStyle(fontSize: 16),
+          ),
+          const SizedBox(width: 10),
+          Switch(
+            value: value,
+            onChanged: onChanged,
+            activeColor: Theme.of(context).colorScheme.primary,
+          ),
+        ],
       ),
     );
   }

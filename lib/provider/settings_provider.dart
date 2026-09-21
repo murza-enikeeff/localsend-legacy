@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:localsend_app/gen/strings.g.dart';
+import 'package:localsend_app/model/device.dart';
 import 'package:localsend_app/model/persistence/color_mode.dart';
 import 'package:localsend_app/model/send_mode.dart';
 import 'package:localsend_app/model/state/settings_state.dart';
@@ -28,12 +29,16 @@ class SettingsNotifier extends Notifier<SettingsState> {
       multicastGroup: _service.getMulticastGroup(),
       destination: _service.getDestination(),
       saveToGallery: _service.isSaveToGallery(),
+      saveToHistory: _service.isSaveToHistory(),
       quickSave: _service.isQuickSave(),
       minimizeToTray: _service.isMinimizeToTray(),
       autoStartLaunchMinimized: _service.isAutoStartLaunchMinimized(),
       https: _service.isHttps(),
       sendMode: _service.getSendMode(),
       saveWindowPlacement: _service.getSaveWindowPlacement(),
+      enableAnimations: _service.getEnableAnimations(),
+      deviceType: _service.getDeviceType(),
+      deviceModel: _service.getDeviceModel(),
     );
   }
 
@@ -93,6 +98,13 @@ class SettingsNotifier extends Notifier<SettingsState> {
     );
   }
 
+  Future<void> setSaveToHistory(bool saveToHistory) async {
+    await _service.setSaveToHistory(saveToHistory);
+    state = state.copyWith(
+      saveToHistory: saveToHistory,
+    );
+  }
+
   Future<void> setQuickSave(bool quickSave) async {
     await _service.setQuickSave(quickSave);
     state = state.copyWith(
@@ -132,6 +144,27 @@ class SettingsNotifier extends Notifier<SettingsState> {
     await _service.setSaveWindowPlacement(savePlacement);
     state = state.copyWith(
       saveWindowPlacement: savePlacement,
+    );
+  }
+
+  Future<void> setEnableAnimations(bool enableAnimations) async {
+    await _service.setEnableAnimations(enableAnimations);
+    state = state.copyWith(
+      enableAnimations: enableAnimations,
+    );
+  }
+
+  Future<void> setDeviceType(DeviceType deviceType) async {
+    await _service.setDeviceType(deviceType);
+    state = state.copyWith(
+      deviceType: deviceType,
+    );
+  }
+
+  Future<void> setDeviceModel(String deviceModel) async {
+    await _service.setDeviceModel(deviceModel);
+    state = state.copyWith(
+      deviceModel: deviceModel,
     );
   }
 }

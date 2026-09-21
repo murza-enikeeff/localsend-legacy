@@ -18,7 +18,7 @@ import 'package:localsend_app/util/native/device_info_helper.dart';
 import 'package:localsend_app/util/sleep.dart';
 
 final multicastProvider = Provider((ref) {
-  final deviceInfo = ref.watch(deviceRawInfoProvider);
+  final deviceInfo = ref.watch(deviceInfoProvider);
   return MulticastService(ref, deviceInfo);
 });
 

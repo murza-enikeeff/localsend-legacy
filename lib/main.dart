@@ -8,6 +8,7 @@ import 'package:localsend_app/gen/strings.g.dart';
 import 'package:localsend_app/init.dart';
 import 'package:localsend_app/model/persistence/color_mode.dart';
 import 'package:localsend_app/pages/home_page.dart';
+import 'package:localsend_app/provider/animation_provider.dart';
 import 'package:localsend_app/provider/app_arguments_provider.dart';
 import 'package:localsend_app/provider/device_info_provider.dart';
 import 'package:localsend_app/provider/network_info_provider.dart';
@@ -25,18 +26,26 @@ import 'package:localsend_app/widget/watcher/window_watcher.dart';
 import 'package:routerino/routerino.dart';
 
 Future<void> main(List<String> args) async {
-  final persistenceService = await preInit(args);
-  runApp(ProviderScope(
+  WidgetsFlutterBinding.ensureInitialized();
+
+  final preInitResult = await preInit(args);
+  final persistenceService = preInitResult.service;
+  final startHidden = preInitResult.startHidden;
+
+  globalSleepState.setSleep(startHidden);
+
+  final scope = ProviderScope(
     overrides: [
-      deviceRawInfoProvider.overrideWithValue(await getDeviceInfo()),
       persistenceProvider.overrideWithValue(persistenceService),
+      deviceRawInfoProvider.overrideWithValue(await getDeviceInfo()),
       appArgumentsProvider.overrideWith((ref) => args),
       tvProvider.overrideWithValue(await checkIfTv()),
     ],
     child: TranslationProvider(
       child: const LocalSendApp(),
     ),
-  ));
+  );
+  runApp(scope);
 }
 
 class LocalSendApp extends ConsumerWidget {
