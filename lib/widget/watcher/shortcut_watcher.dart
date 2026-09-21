@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:localsend_app/util/native/platform_check.dart';
+import 'package:routerino/routerino.dart';
 
 class ShortcutWatcher extends StatelessWidget {
   final Widget child;
@@ -19,10 +20,15 @@ class ShortcutWatcher extends StatelessWidget {
         // Add Control+Q binding for Linux
         // https://github.com/localsend/localsend/issues/194
         if (checkPlatform([TargetPlatform.linux])) LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.keyQ): _ExitAppIntent(),
+
+        // Global ESC
+        LogicalKeySet(LogicalKeyboardKey.escape): _PopPageIntent(),
       },
       child: Actions(
         actions: {
           _ExitAppIntent: CallbackAction(onInvoke: (_) => exit(0)),
+          // Global ESC
+          _PopPageIntent: CallbackAction(onInvoke: (_) async => Navigator.of(Routerino.context).maybePop()),
         },
         child: child,
       ),
@@ -31,3 +37,5 @@ class ShortcutWatcher extends StatelessWidget {
 }
 
 class _ExitAppIntent extends Intent {}
+// Global ESC
+class _PopPageIntent extends Intent {}
