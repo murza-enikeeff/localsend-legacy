@@ -1,3 +1,9 @@
+## 1.11.1-legacy (2026-09-22)
+
+- backports (features and fixes) by: @murza-enikeeff
+- feat: hide color setting when dynamic colors are not supported (@Tienisto)
+- fix: possible race condition leading to zero total files (@Tienisto)
+
 ## 1.11.0-legacy (2026-09-21)
 
 - backports (features and fixes) by: @murza-enikeeff
