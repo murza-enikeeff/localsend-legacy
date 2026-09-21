@@ -1,3 +1,4 @@
+import 'package:dynamic_color/dynamic_color.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -25,6 +26,13 @@ import 'package:localsend_app/widget/labeled_checkbox.dart';
 import 'package:localsend_app/widget/local_send_logo.dart';
 import 'package:localsend_app/widget/responsive_list_view.dart';
 import 'package:routerino/routerino.dart';
+
+final dynamicColorsProvider = Provider<bool?>((ref) {
+  if (checkPlatformIsDesktop()) {
+    return null;
+  }
+  return true; // Заглушка для мобилок
+});
 
 class SettingsTab extends ConsumerStatefulWidget {
   const SettingsTab({Key? key}) : super(key: key);
@@ -97,24 +105,25 @@ class _SettingsTabState extends ConsumerState<SettingsTab> {
                 },
               ),
             ),
-            _SettingsEntry(
-              label: t.settingsTab.general.color,
-              child: CustomDropdownButton<ColorMode>(
-                value: settings.colorMode,
-                items: ColorMode.values.map((colorMode) {
-                  return DropdownMenuItem(
-                    value: colorMode,
-                    alignment: Alignment.center,
-                    child: Text(colorMode.humanName),
-                  );
-                }).toList(),
-                onChanged: (colorMode) async {
-                  if (colorMode != null) {
-                    await ref.read(settingsProvider.notifier).setColorMode(colorMode);
-                  }
-                },
+            if (ref.watch(dynamicColorsProvider) != null)
+              _SettingsEntry(
+                label: t.settingsTab.general.color,
+                child: CustomDropdownButton<ColorMode>(
+                  value: settings.colorMode,
+                  items: ColorMode.values.map((colorMode) {
+                    return DropdownMenuItem(
+                      value: colorMode,
+                      alignment: Alignment.center,
+                      child: Text(colorMode.humanName),
+                    );
+                  }).toList(),
+                  onChanged: (colorMode) async {
+                    if (colorMode != null) {
+                      await ref.read(settingsProvider.notifier).setColorMode(colorMode);
+                    }
+                  },
+                ),
               ),
-            ),
             _SettingsEntry(
               label: t.settingsTab.general.language,
               child: TextButton(
